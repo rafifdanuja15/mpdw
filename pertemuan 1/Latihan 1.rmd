@@ -1,1 +1,22 @@
+---
+title: "Latihan 1"
+author: "Rafif"
+date: "2025-08-25"
+output: html_document
+---
+
+```{r}
+#install.packages("forecast")
+#install.packages("tsibble")
+#install.packages("tseries")
+#install.packages("nortest")
+#install.packages("forecast")
+#install.packages("TTR")
+#install.packages("TSA")
+#install.packages("graphics")
+#install.packages("aTSA")
+#install.packages("lmtest")
+#install.packages("MLmestrics")
+#install.packages("car")
+```
  
