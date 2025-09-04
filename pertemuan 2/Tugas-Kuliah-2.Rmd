@@ -3,13 +3,219 @@ title: "Tugas-Kuliah-2"
 output: html_document
 ---
 
+# Load Data & Cek Autokorelasi
+
 ```{r}
 library(readxl)
+library(ggplot2)
+library(car)
+library(lmtest)
+library(gridExtra)
 ```
 
 ```{r}
-data <- read_xlsx("C:/Users/VICTUS/Downloads/Book1.xlsx")
+data <- read_excel("C:/Users/VICTUS/Downloads/Book1.xlsx")
+```
+
+```{r}
 head(data)
 ```
 
+```{r}
+model <- lm(IPM ~ Tahun, data = data)
+summary(model)
+```
 
+```{r}
+resid <- residuals(model)
+fitted <- fitted.values(model)
+```
+
+```{r}
+p1 <- ggplot(data.frame(resid), aes(sample = resid)) +
+  stat_qq(color = "red") +
+  stat_qq_line(color = "blue") +
+  labs(title = "Normal Probability Plot of the Residuals", 
+       x = "Theoretical Quantiles", y = "Sample Quantiles")
+
+p2 <- ggplot(data.frame(fitted, resid), aes(x = fitted, y = resid)) +
+  geom_point(color = "red") +
+  geom_hline(yintercept = 0) +
+  labs(x = "Fitted Value", y = "Residual", 
+       title = "Residuals Versus the Fitted Values")
+
+p3 <- ggplot(data.frame(resid), aes(x = resid)) +
+  geom_histogram(binwidth = 0.5, fill = "gray", color = "black") +
+  labs(x = "Residual", y = "Frequency", 
+       title = "Histogram of the Residuals")
+
+p4 <- ggplot(data.frame(Order = 1:length(resid), resid), aes(x = Order, y = resid)) +
+  geom_point(color = "blue") +
+  geom_line(color = "blue") +
+  labs(x = "Observation Order", y = "Residual", 
+       title = "Residuals Versus the Order of the Data")
+
+grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+Berdasarkan plot residual terhadap urutan observasi, terlihat adanya pola naik-turun yang cukup teratur sehingga menunjukkan indikasi adanya autokorelasi. Hal ini berarti residual tidak sepenuhnya acak, melainkan masih dipengaruhi oleh urutan waktu (tahun), sehingga model regresi antara tahun dan IPM Kabupaten Kulon Progo berpotensi mengalami masalah autokorelasi.
+
+```{r}
+dw_res <- dwtest(model)  
+dw_res
+```
+
+Hasil uji Durbin-Watson menunjukkan nilai DW = 0.68 dengan p-value = 0.00038 \< 0.05, sehingga dapat disimpulkan terdapat autokorelasi positif yang signifikan pada residual. Artinya, kesalahan (error) pada model regresi antara tahun dan IPM Kabupaten Kulon Progo saling berkorelasi antar periode, sehingga asumsi independensi residual tidak terpenuhi.
+
+```{r}
+resid <- residuals(model)
+```
+
+```{r}
+shapiro.test(resid)
+```
+
+Hasil uji Shapiro-Wilk menunjukkan nilai W = 0.9166 dengan p-value = 0.1964 (\> 0.05), sehingga tidak terdapat bukti yang cukup untuk menolak hipotesis nol. Artinya, residual pada model regresi antara tahun dan IPM Kabupaten Kulon Progo dapat dianggap berdistribusi normal.
+
+```{r}
+acf(resid, main = "ACF of Residuals")
+pacf(resid, main = "PACF of Residuals")
+```
+
+Plot ACF menunjukkan adanya autokorelasi positif yang signifikan pada lag 1, sedangkan PACF juga menegaskan adanya pengaruh kuat pada lag 1. Hal ini konsisten dengan hasil uji Durbin-Watson sebelumnya yang mengindikasikan adanya autokorelasi positif. Dengan demikian, model regresi linear sederhana antara tahun dan IPM Kabupaten Kulon Progo tidak sepenuhnya memenuhi asumsi independensi residual.
+
+# Transformasi
+
+```{r}
+install.packages("https://cran.r-project.org/src/contrib/Archive/orcutt/orcutt_2.0.tar.gz",
+                 repos = NULL, type = "source")
+```
+
+```{r}
+library(orcutt) 
+library(HoRM)
+```
+
+## Metode Cochrane-Orcutt
+
+```{r}
+modelCO<-cochrane.orcutt(model)
+modelCO
+```
+
+Hasil estimasi menggunakan metode **Cochrane-Orcutt** menunjukkan adanya autokorelasi positif pada model awal dengan nilai Durbin-Watson sebesar 0.68 (p-value = 0.00038). Setelah dilakukan transformasi, nilai Durbin-Watson meningkat menjadi 1.39 (p-value = 0.0625) yang berarti masalah autokorelasi sudah tidak signifikan lagi pada taraf 5%. Model regresi yang dihasilkan setelah koreksi adalah:
+
+$$
+\hat{IPM} = -1016.82 + 0.54 \times Tahun
+$$
+
+Hal ini mengindikasikan bahwa Indeks Pembangunan Manusia (IPM) di Kabupaten Kulon Progo mengalami peningkatan rata-rata sekitar **0.54 poin setiap tahunnya**.
+
+```{r}
+rho<- modelCO$rho
+rho
+```
+
+```{r}
+ipm <- data$IPM
+tahun <- data$Tahun
+```
+
+```{r}
+ipm[-1]
+```
+```{r}
+ipm.trans<- ipm[-1]-ipm[-14]*rho
+tahun.trans<- tahun[-1]-tahun[-14]*rho
+modelCOmanual<- lm(ipm.trans~tahun.trans)
+summary(modelCOmanual)
+```
+
+```{r}
+b0bintang <- modelCOmanual$coefficients[-2]
+b0 <- b0bintang/(1-rho)
+b1 <- modelCOmanual$coefficients[-1]
+b0
+b1
+```
+Hasil perhitungan manual sama dengan hasil yang dikeluarkan oleh packages.
+
+
+## Metode Hildreth-Lu
+
+```{r}
+hildreth.lu.func<- function(r, model){
+  x <- model.matrix(model)[,-1]
+  y <- model.response(model.frame(model))
+  n <- length(y)
+  t <- 2:n
+  y <- y[t]-r*y[t-1]
+  x <- x[t]-r*x[t-1]
+  
+  return(lm(y~x))
+}
+
+r <- c(seq(0.1,0.9, by= 0.1))
+tab <- data.frame("rho" = r, "SSE" = sapply(r, function(i){deviance(hildreth.lu.func(i, model))}))
+round(tab, 4)
+```
+
+```{r}
+rOpt <- seq(0.6,0.9, by= 0.001)
+tabOpt <- data.frame("rho" = rOpt, "SSE" = sapply(rOpt, function(i){deviance(hildreth.lu.func(i, model))}))
+head(tabOpt[order(tabOpt$SSE),])
+```
+
+```{r}
+par(mfrow = c(1,1))
+plot(tab$SSE ~ tab$rho , type = "l", xlab = "Rho", ylab = "SSE")
+abline(v = tabOpt[tabOpt$SSE==min(tabOpt$SSE),"rho"], lty = 2, col="red",lwd=2)
+text(x=0.694, y=0.7579960, labels = "rho=0.694", cex = 0.8)
+```
+
+Hasil estimasi dengan metode Hildreth–Lu menunjukkan bahwa nilai rho optimal berada pada sekitar 0.694, yaitu titik dengan Sum of Squared Errors (SSE) paling minimum.
+
+```{r}
+modelHL <- hildreth.lu.func(0.694, model)
+summary(modelHL)
+```
+
+```{r}
+cat("y = ", coef(modelHL)[1]/(1-0.694), "+", coef(modelHL)[2],"x", sep = "")
+```
+
+```{r}
+dwtest(modelHL)
+```
+
+Hasil estimasi awal menunjukkan bahwa variabel tahun berpengaruh signifikan terhadap IPM dengan persamaan regresi:
+
+$$
+\hat{y} = -311.11 + 0.54x
+$$
+
+dengan nilai $R^2 = 0.868$. Namun, uji Durbin–Watson mengindikasikan adanya autokorelasi positif pada residual. Setelah dilakukan koreksi menggunakan metode Hildreth–Lu, diperoleh persamaan transformasi balik:
+
+$$
+\hat{y} = -1016.69 + 0.54x
+$$
+
+dengan nilai Durbin–Watson meningkat menjadi 1.39 (p-value = 0.063), sehingga autokorelasi tidak lagi signifikan. Hal ini menunjukkan bahwa model hasil koreksi lebih reliabel dalam menjelaskan hubungan linear antara tahun dan IPM Kabupaten Kulon Progo.
+
+# Kesimpulan
+
+```{r}
+sseModelawal <- anova(model)$`Sum Sq`[-1]
+sseModelCO <- anova(modelCOmanual)$`Sum Sq`[-1]
+sseModelHL <- anova(modelHL)$`Sum Sq`[-1]
+mseModelawal <- sseModelawal/length(ipm)
+mseModelCO <- sseModelCO/length(ipm)
+mseModelHL <- sseModelHL/length(ipm)
+akurasi <- matrix(c(sseModelawal,sseModelCO,sseModelHL,
+                    mseModelawal,mseModelCO,mseModelHL),nrow=2,ncol=3,byrow = T)
+colnames(akurasi) <- c("Model Awal", "Model Cochrane-Orcutt", "Model Hildreth-Lu")
+row.names(akurasi) <- c("SSE","MSE")
+akurasi
+```
+
+Berdasarkan hasil perbandingan, model awal memiliki nilai SSE = 1.32 dan MSE = 0.094, sedangkan setelah dilakukan koreksi autokorelasi dengan metode Cochrane–Orcutt dan Hildreth–Lu, nilai SSE dan MSE menurun menjadi sekitar 0.758 dan 0.054. Hal ini menunjukkan bahwa kedua metode koreksi mampu memperbaiki masalah autokorelasi dan menghasilkan model yang lebih baik. Karena nilai SSE dan MSE keduanya identik, maka model terbaik dapat dipilih baik dari metode Cochrane–Orcutt maupun Hildreth–Lu, dengan kinerja yang sama dalam meningkatkan reliabilitas model regresi IPM Kabupaten Kulon Progo terhadap tahun.
