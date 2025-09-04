@@ -1,0 +1,15 @@
+---
+title: "Tugas-Kuliah-2"
+output: html_document
+---
+
+```{r}
+library(readxl)
+```
+
+```{r}
+data <- read_xlsx("C:/Users/VICTUS/Downloads/Book1.xlsx")
+head(data)
+```
+
+
