@@ -1,8 +1,16 @@
 ---
-title: "Tugas-Pertemuan-4"
-author: "Rafif"
-date: "2025-09-21"
-output: html_document
+title: "Tugas Pertemuan 4"
+author: "Muhammad Rafif Danuja"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: flatly     
+    highlight: tango  
+    toc: true         
+    toc_depth: 3
+    toc_float: true   
+    number_sections: true
+    df_print: paged   
 ---
 
 # MA(2)
@@ -12,6 +20,7 @@ output: html_document
 ```{r}
 set.seed(1015)
 wn <- rnorm(300)
+n <- 300  
 ts.plot(wn)
 ```
 
