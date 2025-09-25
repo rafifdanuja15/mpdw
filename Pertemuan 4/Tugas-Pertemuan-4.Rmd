@@ -49,15 +49,15 @@ ma2
 ts.plot(ma2)
 ```
 
-Berdasarkan plot time series, terlihat bahwa data MA(2) yang dibangkitkan stasioner dalam rataan
+Berdasarkan plot time series, terlihat bahwa data MA(2) yang dibangkitkan bersifat stasioner dalam rataan, ditunjukkan oleh nilai rata-rata yang relatif konstan dari waktu ke waktu tanpa adanya tren naik atau turun yang jelas.
 
-0## Plot ACF
+## Plot ACF
 
 ```{r}
 acf(ma2,lag.max = 20)
 ```
 
-Berdasarkan plot AFC tersebut, terlihat bahwa plot ACF cuts off setelah lag kedua maka ini menandakan MA(2)
+Berdasarkan plot ACF tersebut, terlihat bahwa nilai autokorelasi mengalami cut-off setelah lag ke-2, yaitu hanya signifikan pada lag 1 dan lag 2, sedangkan untuk lag-lag berikutnya nilainya mendekati nol dan tidak lagi signifikan.
 
 ## Plot PACF
 
@@ -65,7 +65,7 @@ Berdasarkan plot AFC tersebut, terlihat bahwa plot ACF cuts off setelah lag kedu
 pacf(ma2)
 ```
 
-Berdasarkan plot PACF tersebut, terlihat bahwa plot PACF cenderung tails off dan membentuk gelombang sinus yang artinya plot ini adalah MA(2).
+Berdasarkan plot PACF tersebut, terlihat bahwa nilai PACF tidak terputus secara jelas, melainkan menunjukkan pola tails off yang secara perlahan mengecil seiring bertambahnya lag. Selain itu, bentuk plot PACF memperlihatkan pola menyerupai gelombang sinus yang berosilasi di sekitar nol. Pola ini merupakan karakteristik dari proses Moving Average orde 2.
 
 ## Plot EACF
 
@@ -97,6 +97,8 @@ plot(y=yt_ma,x=yt_1_ma)
 cor(yt_ma,yt_1_ma)
 ```
 
+Teoritis :
+
 $$
 \rho_1 = \frac{\gamma_1}{\gamma_0} = \frac{\theta_1 + \theta_1 \theta_2}{1 + \theta_1^2 + \theta_2^2} = \frac{0.4+(0.4)(0.6)}{1+0.4^2+0.6^2}=0.421
 $$
@@ -121,8 +123,9 @@ plot(y=yt_ma2,x=yt_2_ma)
 cor(yt_ma2,yt_2_ma)
 ```
 
-$$ \rho_2 = \frac{\gamma_2}{\gamma_0} = \frac{\theta_2}{1 + \theta_1^2 + \theta_2^2} = \frac{0.6}{1+0.4^2+0.6^2}=0.395 $$
+Teoritis :
 
+$$ \rho_2 = \frac{\gamma_2}{\gamma_0} = \frac{\theta_2}{1 + \theta_1^2 + \theta_2^2} = \frac{0.6}{1+0.4^2+0.6^2}=0.395 $$
 
 ### Korelasi antara Yt dengan Yt-3
 
@@ -143,6 +146,8 @@ plot(y=yt,x=yt_3ma)
 ```{r}
 cor(yt, yt_3ma) 
 ```
+
+Teoritis :
 
 $$
 \rho_3 = 0
@@ -185,11 +190,15 @@ ar
 ts.plot(ar)
 ```
 
+Berdasarkan plot time series di atas, terlihat bahwa data hasil bangkitan dari proses AR(2) berfluktuasi di sekitar rata-rata nol tanpa menunjukkan adanya tren naik maupun tren turun yang jelas dari waktu ke waktu. Hal ini menunjukkan bahwa data tersebut stasioner.
+
 ## Plot ACF
 
 ```{r}
 acf(ar)
 ```
+
+Terlihat bahwa nilai autokorelasi menurun secara bertahap (tails off) dan tidak mengalami cut-off pada lag tertentu. Pola ini sesuai dengan karakteristik proses AR, di mana ACF mengecil perlahan seiring bertambahnya lag.
 
 ## Plot PACF
 
@@ -197,11 +206,15 @@ acf(ar)
 pacf(ar)
 ```
 
+Nilai partial autocorrelation menunjukkan cut-off yang jelas pada lag ke-2, sementara lag setelahnya tidak signifikan. Pola ini merupakan ciri khas dari proses AR(2), di mana PACF terputus pada lag sesuai dengan orde model.
+
 ## Plot EACF
 
 ```{r}
 TSA::eacf(ar)
 ```
+
+Tabel pemilihan orde ARMA menunjukkan bahwa kombinasi AR(2) dengan berbagai orde MA (q ≥ 1) umumnya menghasilkan model yang layak (ditandai dengan simbol o). Hal ini sejalan dengan analisis sebelumnya bahwa proses data dapat direpresentasikan dengan komponen autoregresif orde 2. Pola ini memperkuat indikasi bahwa AR(2) merupakan struktur utama yang relevan dalam model
 
 ## Scatterplot Antar Lag
 
@@ -225,11 +238,11 @@ plot(y=yt_ar,x=yt_1_ar)
 cor(yt_ar,yt_1_ar)
 ```
 
+Teoritis
+
 $$
 \rho_1 = \frac{\phi_1}{1 - \phi_2}=\frac{0.5}{1-0.2}=0.625
 $$
-
-
 
 ### Korelasi antara Yt dengan Yt-2
 
@@ -251,11 +264,12 @@ plot(y=yt_ar2,x=yt_2_ar)
 cor(yt_ar2,yt_2_ar)
 ```
 
+Teoritis :
+
 $$
 \rho_2 = \frac{\phi_1 \rho_1 + \phi_2}{1}
          = \frac{\phi_1^2}{1 - \phi_2} + \phi_2=\frac{0.5^2}{1-0.2}+0.2=0.5125
 $$
-
 
 ### Korelasi antara Yt dengan Yt-3
 
@@ -276,6 +290,9 @@ plot(y=yt,x=yt_3ar)
 ```{r}
 cor(yt,yt_3ar)
 ```
+
+Teoritis :
+
 $$
 \rho_3 = \phi_1 \rho_2 + \phi_2 \rho_1=0.5(0.5125)+0.2(0.625)=0.38125
 $$
@@ -315,6 +332,8 @@ par(mfrow = c(1, 2))
 ts.plot(arma)
 ts.plot(arma_sim)
 ```
+
+Kedua plot menampilkan pola fluktuasi acak yang serupa, berosilasi di sekitar rata-rata nol tanpa adanya tren jangka panjang. Hal ini menunjukkan bahwa proses yang terbentuk bersifat stasioner, baik dalam mean maupun varians, sehingga model ARMA yang dibangun mampu merepresentasikan data dengan baik dan menghasilkan simulasi yang konsisten dengan sifat proses aslinya.
 
 ## Plot ACF
 
@@ -364,6 +383,54 @@ plot(y=yt_arma,x=yt_1_arma)
 cor(yt_arma,yt_1_arma)
 ```
 
+Teoritis :
+
+$$
+\gamma_0 = (1 + \theta_1^2 + \theta_2^2)\sigma^2 + \phi_1 \theta_1 \sigma^2 + \phi_2 \theta_2 \sigma^2 + \phi_1 \theta_1 \theta_2 \sigma^2
+$$
+$$
+= (1 + 0.4^2 + 0.6^2)\sigma^2 + 0.5(0.4)\sigma^2 + 0.2(0.6)\sigma^2 + 0.5(0.4)(0.6)\sigma^2
+$$
+$$
+= 1.96\sigma^2
+$$
+
+$$
+\gamma_1 = (\theta_1 + \theta_1\theta_2 + \phi_1 + \phi_1\theta_1)\sigma^2 + \phi_2\gamma_0
+$$
+$$
+= (0.4 + 0.4(0.6) + 0.5 + 0.5(0.4))\sigma^2 + 0.2(1.96\sigma^2)
+$$
+$$
+= 1.732\sigma^2
+$$
+
+$$
+\gamma_2 = \theta_2\sigma^2 + \phi_1\gamma_1 + \phi_2\gamma_0
+$$
+$$
+= 0.6\sigma^2 + 0.5(1.732\sigma^2) + 0.2(1.96\sigma^2)
+$$
+$$
+= 1.858\sigma^2
+$$
+
+$$
+\gamma_3 = \phi_1\gamma_2 + \phi_2\gamma_1
+$$
+$$
+= 0.5(1.858\sigma^2) + 0.2(1.732\sigma^2)
+$$
+$$
+= 1.2754\sigma^2
+$$
+
+Autokorelasi
+
+$$
+\rho_1 = \frac{\gamma_1}{\gamma_0} = \frac{1.732\sigma^2}{1.96\sigma^2} \approx 0.8837
+$$
+
 ### Korelasi antara Yt dengan Yt-2
 
 ```{r}
@@ -383,6 +450,12 @@ plot(y=yt_arma2,x=yt_2_arma)
 ```{r}
 cor(yt_arma2,yt_2_arma)
 ```
+Teoritis :
+$$
+\rho_2 = \frac{\gamma_2}{\gamma_0} 
+= \frac{1.858\sigma^2}{1.96\sigma^2} 
+\approx 0.9480
+$$
 
 ### Korelasi antara Yt dengan Yt-3
 
@@ -403,3 +476,9 @@ plot(y=yt_arma,x=yt_3arma)
 ```{r}
 cor(yt_arma,yt_3arma)
 ```
+Teoritis :
+$$
+\rho_3 = \frac{\gamma_3}{\gamma_0} 
+= \frac{1.2754\sigma^2}{1.96\sigma^2} 
+\approx 0.6507
+$$
