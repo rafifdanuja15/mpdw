@@ -33,7 +33,6 @@ for(i in 3:n){
 
 ma
 ```
-## Pembangkitan data dengan arima.sim
 
 ```{r}
 set.seed(1015)
@@ -49,11 +48,16 @@ ma2
 ```{r}
 ts.plot(ma2)
 ```
-## Plot ACF
+
+Berdasarkan plot time series, terlihat bahwa data MA(2) yang dibangkitkan stasioner dalam rataan
+
+0## Plot ACF
 
 ```{r}
 acf(ma2,lag.max = 20)
 ```
+
+Berdasarkan plot AFC tersebut, terlihat bahwa plot ACF cuts off setelah lag kedua maka ini menandakan MA(2)
 
 ## Plot PACF
 
@@ -61,12 +65,18 @@ acf(ma2,lag.max = 20)
 pacf(ma2)
 ```
 
+Berdasarkan plot PACF tersebut, terlihat bahwa plot PACF cenderung tails off dan membentuk gelombang sinus yang artinya plot ini adalah MA(2).
+
 ## Plot EACF
 
 ```{r}
 TSA::eacf(ma2)
 ```
+
+Berdasarkan pola segitiga nol pada plot EACF, terlihat bahwa segitiga nol berada pada ordo AR(0) dan ordo MA(2)
+
 ## Scatterplot Antar Lag
+
 ### Korelasi antara Yt dengan Yt−1
 
 ```{r}
@@ -86,12 +96,18 @@ plot(y=yt_ma,x=yt_1_ma)
 ```{r}
 cor(yt_ma,yt_1_ma)
 ```
+
+$$
+\rho_1 = \frac{\gamma_1}{\gamma_0} = \frac{\theta_1 + \theta_1 \theta_2}{1 + \theta_1^2 + \theta_2^2} = \frac{0.4+(0.4)(0.6)}{1+0.4^2+0.6^2}=0.421
+$$
+
 ### Korelasi antara Yt dengan Yt−2
 
 ```{r}
 yt_ma2 <- ma2[-c(1,2)]
 yt_ma2
 ```
+
 ```{r}
 yt_2_ma <- ma2[-c(299,300)]
 yt_2_ma
@@ -100,28 +116,37 @@ yt_2_ma
 ```{r}
 plot(y=yt_ma2,x=yt_2_ma)
 ```
+
 ```{r}
 cor(yt_ma2,yt_2_ma)
 ```
+
+$$ \rho_2 = \frac{\gamma_2}{\gamma_0} = \frac{\theta_2}{1 + \theta_1^2 + \theta_2^2} = \frac{0.6}{1+0.4^2+0.6^2}=0.395 $$
+
+
 ### Korelasi antara Yt dengan Yt-3
 
 ```{r}
-yt     <- ma2[-c(1,2,3)] 
+yt <- ma2[-c(1,2,3)] 
 yt
 ```
+
 ```{r}
 yt_3ma <- ma2[-c(298,299,300)] 
 yt_3ma
 ```
+
 ```{r}
 plot(y=yt,x=yt_3ma)
 ```
 
-
-
 ```{r}
 cor(yt, yt_3ma) 
 ```
+
+$$
+\rho_3 = 0
+$$
 
 # AR(2)
 
@@ -153,11 +178,13 @@ ar <- arima.sim(
 )
 ar
 ```
+
 ## Plot Time Series
 
 ```{r}
 ts.plot(ar)
 ```
+
 ## Plot ACF
 
 ```{r}
@@ -175,6 +202,7 @@ pacf(ar)
 ```{r}
 TSA::eacf(ar)
 ```
+
 ## Scatterplot Antar Lag
 
 ### Korelasi antara Yt dengan Yt−1
@@ -183,16 +211,25 @@ TSA::eacf(ar)
 yt_ar <- ar[-1]
 yt_ar
 ```
+
 ```{r}
 yt_1_ar <- ar[-300]
 yt_1_ar
 ```
+
 ```{r}
 plot(y=yt_ar,x=yt_1_ar)
 ```
+
 ```{r}
 cor(yt_ar,yt_1_ar)
 ```
+
+$$
+\rho_1 = \frac{\phi_1}{1 - \phi_2}=\frac{0.5}{1-0.2}=0.625
+$$
+
+
 
 ### Korelasi antara Yt dengan Yt-2
 
@@ -200,6 +237,7 @@ cor(yt_ar,yt_1_ar)
 yt_ar2 <- ar[-c(1,2)]
 yt_ar2
 ```
+
 ```{r}
 yt_2_ar <- ar[-c(299,300)]
 yt_2_ar
@@ -212,12 +250,20 @@ plot(y=yt_ar2,x=yt_2_ar)
 ```{r}
 cor(yt_ar2,yt_2_ar)
 ```
+
+$$
+\rho_2 = \frac{\phi_1 \rho_1 + \phi_2}{1}
+         = \frac{\phi_1^2}{1 - \phi_2} + \phi_2=\frac{0.5^2}{1-0.2}+0.2=0.5125
+$$
+
+
 ### Korelasi antara Yt dengan Yt-3
 
 ```{r}
 yt     <- ar[-c(1,2,3)] 
 yt
 ```
+
 ```{r}
 yt_3ar <- ar[-c(298,299,300)] 
 yt_3ar
@@ -230,7 +276,9 @@ plot(y=yt,x=yt_3ar)
 ```{r}
 cor(yt,yt_3ar)
 ```
-
+$$
+\rho_3 = \phi_1 \rho_2 + \phi_2 \rho_1=0.5(0.5125)+0.2(0.625)=0.38125
+$$
 
 # ARMA(2,2)
 
@@ -249,6 +297,7 @@ for (i in 3:n) {
 
 arma
 ```
+
 ```{r}
 set.seed(1015)
 arma_sim <- arima.sim(
@@ -266,6 +315,7 @@ par(mfrow = c(1, 2))
 ts.plot(arma)
 ts.plot(arma_sim)
 ```
+
 ## Plot ACF
 
 ```{r}
@@ -287,9 +337,11 @@ pacf(arma_sim)
 ```{r}
 TSA::eacf(arma)
 ```
+
 ```{r}
 TSA::eacf(arma_sim)
 ```
+
 ## Scatterplot Antar Lag
 
 ### Korelasi antara Yt dengan Yt−1
@@ -318,6 +370,7 @@ cor(yt_arma,yt_1_arma)
 yt_arma2 <- arma_sim[-c(1,2)]
 yt_arma2
 ```
+
 ```{r}
 yt_2_arma <- arma_sim[-c(299,300)]
 yt_2_arma
@@ -337,6 +390,7 @@ cor(yt_arma2,yt_2_arma)
 yt_arma     <- arma_sim[-c(1,2,3)] 
 yt_arma
 ```
+
 ```{r}
 yt_3arma <- arma_sim[-c(298,299,300)] 
 yt_3arma
@@ -349,4 +403,3 @@ plot(y=yt_arma,x=yt_3arma)
 ```{r}
 cor(yt_arma,yt_3arma)
 ```
-
