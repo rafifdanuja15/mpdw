@@ -61,6 +61,8 @@ densityplot(~ Harga, data = data,
             xlab = "Harga",
             main = "Density Plot Harga")
 ```
+Grafik menunjukkan sebaran harga saham PT Indofood yang bersifat bimodal, dengan dua puncak utama di kisaran Rp 9.500–10.000 dan Rp 10.700–11.000. Ini menandakan harga saham sering berada pada dua rentang tersebut. Sebaran harga cukup lebar, menunjukkan adanya fluktuasi harga selama periode pengamatan.
+
 
 # Split Data
 
@@ -180,7 +182,6 @@ dari ACF, PACF, dan EACF didapatkan beberapa model tentatif :
 1. ARIMA(0,1,1)
 2. ARIMA(1,1,0)
 3. ARIMA(1,1,1)
-4. ARIMA(0,1,0)
 
 # Pendugaan Parameter Model Tentatif
 
@@ -199,7 +200,7 @@ summary(model1.da)
 ```{r}
 lmtest::coeftest(model1.da)
 ```
-intercept dan ma(1) tidak signifikan.
+model dengan ma(1) tidak signifikan.
 
 ## ARIMA(1,1,0)
 
@@ -211,7 +212,7 @@ summary(model2.da)
 ```{r}
 lmtest::coeftest(model2.da)
 ```
-AR(1) dan intercept tidak signifikan
+model dengan AR(1) tidak signifikan
 
 ## ARIMA(1,1,1)
 
@@ -225,20 +226,16 @@ lmtest::coeftest(model3.da)
 
 AR(1) dan MA(1) signifikan
 
-## ARIMA(0,1,0)
-
-```{r}
-model4.da=Arima(train_ts, order=c(0,1,0),method="ML")
-summary(model4.da)
-```
+## Perbandingan Model
 
 ```{r}
 aic.arima<-data.frame(
-  "Model"=c("ARIMA(0,1,1)", "ARIMA(1,1,0)", "ARIMA(1,1,1)","ARIMA(0,1,0)"),
-  "AIC"=c(model1.da$aic, model2.da$aic, model3.da$aic, model4.da$aic))
+  "Model"=c("ARIMA(0,1,1)", "ARIMA(1,1,0)", "ARIMA(1,1,1)"),
+  "AIC"=c(model1.da$aic, model2.da$aic, model3.da$aic))
 
 aic.arima
 ```
+Model ARIMA(1,1,1) memiliki nilai AIC ter-rendah.
 
 # Diagnostik Model
 
@@ -261,30 +258,41 @@ pacf(sisaan111)
 ```{r}
 Box.test(sisaan111, lag = 23 ,type = "Ljung")
 ```
+Asumsi Non-Autokorelasi terpenuhi, hal ini dapat dilihat dari nilai p-value>0.05.
+
 ## Uji Normalitas
 
 ```{r}
 ks.test(sisaan111,"pnorm")
 ```
+P-value<0.05, artinya kita menolak h0. hal ini menunjukkan pelanggaran asumsi normalitas residual.
 
 ## Uji Nilai Tengah Sisaan
 
 ```{r}
 t.test(sisaan111, mu = 0, alternative = "two.sided")
 ```
+Asumsi nilai harapan residual=0 terpenuhi.
+
 # Overfitting Model
+
+Overfitting model dilakukan pada model :
+1. ARIMA(2,1,1)
+2. ARIMA(1,1,2)
 
 ```{r}
 arima.211<-arima(train_ts, order=c(2,1,1), include.mean = TRUE,method="ML") #ARIMA (2,1,1)
 
 lmtest::coeftest(arima.211)
 ```
+AR(2) tidak signifikan
 
 ```{r}
 arima.112<-arima(train_ts, order=c(1,1,2), include.mean = TRUE,method="ML") #ARIMA (1,1,2)
 
 lmtest::coeftest(arima.112)
 ```
+MA(2) tidak signifikan
 
 # Ukuran keakuratan ramalan Model ARIMA (1,1,1)
 
@@ -309,6 +317,7 @@ lines(dugaan)
 mape_train <- mean(abs((train_data$Harga - dugaan) / train_data$Harga)) * 100
 mape_train
 ```
+Nilai MAPE pada train sangat baik, kurang dari 10%
 
 ```{r}
 par(col="black")
@@ -354,4 +363,4 @@ gabungan2
 mape_test <- mean(abs((test_data$Harga - ramalan) / test_data$Harga)) * 100
 mape_test
 ```
-
+Performa model ARIMA(1,1,1) sangat baik dengan nilai MAPE 6.8%, meskipun nilai MAPE meningkat di data testing, akan tetapi model kita masih cukup handal dalam melakukan peramalan.
